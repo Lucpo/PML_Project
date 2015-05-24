@@ -19,14 +19,19 @@ library(corrplot)
 
 ####Load data####
 ```{r}
-TrainData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-training.csv", header = TRUE )
+TrainData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-training.csv",  header=TRUE, as.is = TRUE, stringsAsFactors = FALSE, sep=',', na.strings=c('NA','','#DIV/0!'))
 # summary(TrainData)
-TestData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-testing.csv", header = TRUE )
+TestData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-testing.csv",  header=TRUE, as.is = TRUE, stringsAsFactors = FALSE, sep=',', na.strings=c('NA','','#DIV/0!'))
 # summary(TestData)
+TrainData$classe <- as.factor(TrainData$classe)  
 ```
 
+####Process data####
 We need to remove incomplete rows from the dataset.
 ```{r TranformData, echo = TRUE}
-TrainDataClean <-TrainData[complete.cases(TrainData),]
-TestDataClean <-TestData[complete.cases(TestData),]
+NAind <- apply(TrainData,2,function(x) {sum(is.na(x))}) 
+TrainDataClean <- TrainData[,which(NAind == 0)]
+NAind <- apply(TestData,2,function(x) {sum(is.na(x))}) 
+TestDataClean <- TestData[,which(NAind == 0)]
 ```
+
