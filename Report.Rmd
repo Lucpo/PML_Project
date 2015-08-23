@@ -34,19 +34,97 @@ if (!file.exists(testFile)) {
 
 ####Load data####
 ```{r}
-TrainData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-training.csv",  header=TRUE, as.is = TRUE, stringsAsFactors = FALSE, sep=',', na.strings=c('NA','','#DIV/0!'))
-# summary(TrainData)
-TestData=read.csv("H:/Courses/DataScience/PML/PML_Project/pml-testing.csv",  header=TRUE, as.is = TRUE, stringsAsFactors = FALSE, sep=',', na.strings=c('NA','','#DIV/0!'))
-# summary(TestData)
+TrainData = read.csv("pml-training.csv", na.strings = c("NA", ""))
+summary(TrainData)
+dim(TrainData)
+TestData=read.csv("pml-testing.csv", na.strings = c("NA", ""))
+summary(TestData)
 TrainData$classe <- as.factor(TrainData$classe)  
 ```
 
 ####Process data####
 We need to remove incomplete rows from the dataset.
+We also remove the first 7 columns as they are not predictors.
 ```{r TranformData, echo = TRUE}
-NAind <- apply(TrainData,2,function(x) {sum(is.na(x))}) 
-TrainDataClean <- TrainData[,which(NAind == 0)]
-NAind <- apply(TestData,2,function(x) {sum(is.na(x))}) 
-TestDataClean <- TestData[,which(NAind == 0)]
+na_test = sapply(TrainData, function(x) {sum(is.na(x))})
+tbl = table(na_test)
+sum(complete.cases(TrainData))
+
+bad_columns = names(na_test[na_test==19216])
+TrainDataClean = TrainData[, !names(TrainData) %in% bad_columns]
+TrainData = TrainData[,-c(1:7)]
+str(TrainDataClean)
 ```
 
+Then we apply same transformations on the testdata.
+```{r TranformData, echo = TRUE}
+na_test = sapply(TestData, function(x) {sum(is.na(x))})
+tbl = table(na_test)
+
+bad_columns = names(na_test[na_test==20])
+TestDataClean = TestData[, !names(TestData) %in% bad_columns]
+TestDataClean = TestDataClean[,-c(1:7)]
+```
+
+####Partition train data####
+We split the training set 70%-30% for cross validation purposes.
+
+```{r TranformData, echo = TRUE}
+set.seed(308)
+in_train <- createDataPartition(TrainDataClean$classe, p = 0.7, list = FALSE)
+TestSet <- TrainDataClean[-in_train,]
+TrainSet <- TrainDataClean[in_train,]
+
+```
+
+
+####Model data ####
+First we use Random Forest package withoutCaret package to model our data.
+
+```{r TranformData, echo = TRUE}
+modelRF = randomForest(classe~., data=TrainSet)
+modelRF
+saveRDS(modelRF, "modelRF.RDS")
+
+```
+
+Then we model data with Caret package using Random Forest algorithm.
+```{r TranformData, echo = TRUE}
+controlRf <- trainControl(method="cv", 5)
+caretmodelRf <- train(classe ~ ., data=TrainSet, method="rf", trControl=controlRf, ntree=250)
+caretmodelRf
+saveRDS(caretmodelRf, "caretmodelRF.RDS")
+```
+
+
+####Cross Validation####
+
+mean(predict(modelRF, TestSet) == TestSet$classe) * 100
+mean(predict(caretmodelRF, TestSet) == TestSet$classe) * 100
+
+We perform cross validation on Random Forest model 
+```{r TranformData, echo = TRUE}
+caretmodelRF = readRDS("caretmodelRF.RDS")
+
+predictcaretRf <- predict(caretmodelRF, TestSet)
+confusionMatrix(TestSet$classe, predictcaretRf)
+accuracy <- postResample(predictcaretRf, TestSet$classe)
+```
+
+
+
+Then we perform cross validation on Random Forest model 
+```{r TranformData, echo = TRUE}
+modelRF = readRDS("modelRF.RDS")
+predictcaretRf <- predict(caretmodelRF, TestSet)
+confusionMatrix(TestSet$classe, predictcaretRf)
+accuracy <- postResample(predictcaretRf, TestSet$classe)
+```
+
+####Predict ####
+
+Using using Random Forest model we predict test data.
+```{r TranformData, echo = TRUE}
+result <- predict(modelRF, TestDataClean)
+result
+```
