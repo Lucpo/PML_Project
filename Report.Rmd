@@ -17,9 +17,12 @@ library(randomForest)
 library(corrplot)
 ```
 
+```{r}
 setwd("H:/Courses/DataScience/PML/Project/PML_Project")
+```
 
 ####Download data####
+```{r}
 trainUrl <-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 testUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 trainFile <- "H:/Courses/DataScience/PML/Project/PML_Project/pml-training.csv"
@@ -30,7 +33,7 @@ if (!file.exists(trainFile)) {
 if (!file.exists(testFile)) {
   download.file(testUrl, destfile=testFile, method="curl")
 }
-
+```
 
 ####Load data####
 ```{r}
@@ -50,7 +53,7 @@ sum(complete.cases(TrainData))
 
 bad_columns = names(na_test[na_test==19216])
 TrainDataClean = TrainData[, !names(TrainData) %in% bad_columns]
-TrainData = TrainData[,-c(1:7)]
+TrainDataClean = TrainDataClean[,-c(1:7)]
 str(TrainDataClean)
 ```
 
@@ -97,10 +100,11 @@ mean(predict(modelRF, TestSet) == TestSet$classe) * 100
 
 We perform cross validation on Random Forest model 
 ```{r , echo = TRUE}
-caretmodelRF = readRDS("caretmodelRF.RDS")
-predictcaretRf <- predict(caretmodelRF, TestSet)
-confusionMatrix(TestSet$classe, predictcaretRf)
-accuracy <- postResample(predictcaretRf, TestSet$classe)
+
+predictRf <- predict(modelRF, TestSet)
+confusionMatrix(TestSet$classe, predictRf)
+accuracy <- postResample(predictRf, TestSet$classe)
+
 ```
 
 ####Predict ####
@@ -112,3 +116,6 @@ result <- predict(modelRF, TestDataClean)
 
 result
 ```
+
+
+
