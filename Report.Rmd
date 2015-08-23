@@ -89,8 +89,9 @@ saveRDS(modelRF, "modelRF.RDS")
 Then we model data with Caret package using Random Forest algorithm.
 ```{r TranformData, echo = TRUE}
 controlRf <- trainControl(method="cv", 5)
-caretmodelRf <- train(classe ~ ., data=TrainSet, method="rf", trControl=controlRf, ntree=250)
+caretmodelRf <- train(classe ~ ., data=TrainSet, method="rf", trControl=controlRf, ntree=50)
 caretmodelRf
+predict(caretmodelRf, TestDataClean)
 saveRDS(caretmodelRf, "caretmodelRF.RDS")
 ```
 
@@ -100,16 +101,17 @@ saveRDS(caretmodelRf, "caretmodelRF.RDS")
 Both models provide good results:
 Random Forest:
 ```{r , echo = TRUE}
+modelRF = readRDS("modelRF.RDS")
 mean(predict(modelRF, TestSet) == TestSet$classe) * 100
 ```
 Caret with Random Forest:
 ```{r , echo = TRUE}
+caretmodelRF = readRDS("caretmodelRF.RDS")
 mean(predict(caretmodelRF, TestSet) == TestSet$classe) * 100
 ```
 We perform cross validation on Random Forest model 
 ```{r , echo = TRUE}
 caretmodelRF = readRDS("caretmodelRF.RDS")
-
 predictcaretRf <- predict(caretmodelRF, TestSet)
 confusionMatrix(TestSet$classe, predictcaretRf)
 accuracy <- postResample(predictcaretRf, TestSet$classe)
@@ -120,15 +122,18 @@ accuracy <- postResample(predictcaretRf, TestSet$classe)
 Then we perform cross validation on Random Forest model 
 ```{r , echo = TRUE}
 modelRF = readRDS("modelRF.RDS")
-predictcaretRf <- predict(caretmodelRF, TestSet)
-confusionMatrix(TestSet$classe, predictcaretRf)
-accuracy <- postResample(predictcaretRf, TestSet$classe)
+predictRf <- predict(modelRF, TestSet)
+predict(modelRF, TestDataClean)
+confusionMatrix(TestSet$classe, predictRf)
+accuracy <- postResample(predictRf, TestSet$classe)
 ```
 
 ####Predict ####
 
 Using using Random Forest model we predict test data.
 ```{r PredictData, echo = TRUE}
+modelRF = readRDS("modelRF.RDS")
 result <- predict(modelRF, TestDataClean)
+
 result
 ```
