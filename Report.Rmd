@@ -35,17 +35,15 @@ if (!file.exists(testFile)) {
 ####Load data####
 ```{r}
 TrainData = read.csv("pml-training.csv", na.strings = c("NA", ""))
-summary(TrainData)
 dim(TrainData)
 TestData=read.csv("pml-testing.csv", na.strings = c("NA", ""))
-summary(TestData)
 TrainData$classe <- as.factor(TrainData$classe)  
 ```
 
 ####Process data####
 We need to remove incomplete rows from the dataset.
 We also remove the first 7 columns as they are not predictors.
-```{r TranformData, echo = TRUE}
+```{r ProcessData, echo = TRUE}
 na_test = sapply(TrainData, function(x) {sum(is.na(x))})
 tbl = table(na_test)
 sum(complete.cases(TrainData))
@@ -57,7 +55,7 @@ str(TrainDataClean)
 ```
 
 Then we apply same transformations on the testdata.
-```{r TranformData, echo = TRUE}
+```{r , echo = TRUE}
 na_test = sapply(TestData, function(x) {sum(is.na(x))})
 tbl = table(na_test)
 
@@ -69,7 +67,7 @@ TestDataClean = TestDataClean[,-c(1:7)]
 ####Partition train data####
 We split the training set 70%-30% for cross validation purposes.
 
-```{r TranformData, echo = TRUE}
+```{r PartitionData, echo = TRUE}
 set.seed(308)
 in_train <- createDataPartition(TrainDataClean$classe, p = 0.7, list = FALSE)
 TestSet <- TrainDataClean[-in_train,]
@@ -81,7 +79,7 @@ TrainSet <- TrainDataClean[in_train,]
 ####Model data ####
 First we use Random Forest package withoutCaret package to model our data.
 
-```{r TranformData, echo = TRUE}
+```{r ModelData, echo = TRUE}
 modelRF = randomForest(classe~., data=TrainSet)
 modelRF
 saveRDS(modelRF, "modelRF.RDS")
@@ -99,11 +97,17 @@ saveRDS(caretmodelRf, "caretmodelRF.RDS")
 
 ####Cross Validation####
 
+Both models provide good results:
+Random Forest:
+```{r , echo = TRUE}
 mean(predict(modelRF, TestSet) == TestSet$classe) * 100
+```
+Caret with Random Forest:
+```{r , echo = TRUE}
 mean(predict(caretmodelRF, TestSet) == TestSet$classe) * 100
-
+```
 We perform cross validation on Random Forest model 
-```{r TranformData, echo = TRUE}
+```{r , echo = TRUE}
 caretmodelRF = readRDS("caretmodelRF.RDS")
 
 predictcaretRf <- predict(caretmodelRF, TestSet)
@@ -114,7 +118,7 @@ accuracy <- postResample(predictcaretRf, TestSet$classe)
 
 
 Then we perform cross validation on Random Forest model 
-```{r TranformData, echo = TRUE}
+```{r , echo = TRUE}
 modelRF = readRDS("modelRF.RDS")
 predictcaretRf <- predict(caretmodelRF, TestSet)
 confusionMatrix(TestSet$classe, predictcaretRf)
@@ -124,7 +128,7 @@ accuracy <- postResample(predictcaretRf, TestSet$classe)
 ####Predict ####
 
 Using using Random Forest model we predict test data.
-```{r TranformData, echo = TRUE}
+```{r PredictData, echo = TRUE}
 result <- predict(modelRF, TestDataClean)
 result
 ```
