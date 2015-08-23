@@ -46,12 +46,20 @@ dim(TrainData)
 
 ```r
 TestData=read.csv("pml-testing.csv", na.strings = c("NA", ""))
-TrainData$classe <- as.factor(TrainData$classe)  
+TrainData$classe <- as.factor(TrainData$classe) 
+dim(TestData)
 ```
+
+```
+## [1]  20 160
+```
+There are 19622 records in Traindata with 160 variables.
+For the test data there are 20 records with same number of variables.
 
 ####Process data####
 We need to remove incomplete rows from the dataset.
 We also remove the first 7 columns as they are not predictors.
+As per project goal we will use data from accelerometers on the belt, forearm, arm, and dumbell. These fields will be used for predictors.
 
 ```r
 na_test = sapply(TrainData, function(x) {sum(is.na(x))})
@@ -140,7 +148,7 @@ TestDataClean = TestDataClean[,-c(1:7)]
 
 ####Partition train data####
 We split the training set 70%-30% for cross validation purposes.
-
+We will tran in 70% of the data and then perform validation on the rest of training data.
 
 ```r
 set.seed(308)
@@ -151,7 +159,9 @@ TrainSet <- TrainDataClean[in_train,]
 
 
 ####Model data ####
-First we use Random Forest package withoutCaret package to model our data.
+We use Random Forest package without Caret package to model our data.
+This was due to processing speed.
+Caret package was also used but precision was similar with more processing time.
 
 
 ```r
@@ -180,8 +190,7 @@ modelRF
 
 ####Cross Validation####
 
-Both models provide good results:
-Random Forest:
+Random Forest model provide good results: 
 
 ```r
 mean(predict(modelRF, TestSet) == TestSet$classe) * 100
@@ -235,6 +244,7 @@ confusionMatrix(TestSet$classe, predictRf)
 ```r
 accuracy <- postResample(predictRf, TestSet$classe)
 ```
+Accuracy is 99.6% for the implemented algorithm.
 
 ####Predict ####
 
@@ -251,3 +261,6 @@ result
 ##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
 ## Levels: A B C D E
 ```
+
+
+
